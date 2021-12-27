@@ -243,6 +243,161 @@ const JOINT_LINKS = [
 /**
  * @public
  */
+ export class TongsLayer implements ILayer {
+  private config_: IPathLayerConfig
+  private threeLayer_: ThreeLayer
+  private meshes_: THREE.Mesh[]
+  private lines_: MeshLine[]
+  private basiclines_: THREE.Line[]
+  private mat_: MeshLineMaterial
+
+  constructor(config: IPathLayerConfig) {
+    if (!config.color) {
+      config.color = 'red';
+    }
+    if (!config.lineWidth) {
+      config.lineWidth = 5;
+    }
+    if (!config.numSmoothPoints) {
+      config.numSmoothPoints = 10;
+    }
+
+    this.config_ = config;
+    this.lines_ = [];
+    this.basiclines_ = [];
+    this.meshes_ = [];
+
+    this.threeLayer_ = new ThreeLayer({
+      width: config.width,
+      height: config.height,
+    });
+
+    this.mat_ = new MeshLineMaterial({
+      resolution: new THREE.Vector2(this.config_.width, this.config_.height),
+      color: this.config_.color,
+      lineWidth: this.config_.lineWidth,
+      sizeAttenuation: 0,
+      useMap: 0,
+      opacity: 1,
+    });
+  }
+
+  Draw(c: number[][]) : void {
+    this.Clear();
+    this.DrawLine(c[20], c[3]);
+    this.DrawLine(c[20], c[7]);
+  }
+
+  DrawLine(p1: number[], p2: number[]): void {
+    const points: THREE.Vector3[] = [
+      new THREE.Vector3(p1[0] * this.config_.width, p1[1] * this.config_.height, 0),
+      new THREE.Vector3(p2[0] * this.config_.width, p2[1] * this.config_.height, 0)
+    ];
+    const material = new THREE.LineBasicMaterial({ 
+      color: 0xff0000,
+      linewidth: 100,
+    	linecap: 'round', //ignored by WebGLRenderer
+	    linejoin:  'round' //ignored by WebGLRenderer
+    });
+    const geometry = new THREE.BufferGeometry().setFromPoints( points );
+    const line = new THREE.Line(geometry, material);
+    this.basiclines_.push(line);
+    this.threeLayer_.Add(line);
+  }
+
+  DrawPath(path: number[][]) : void {
+    const points : THREE.Vector3[] = [];
+    for (let i = 0; i < path.length; ++i) {
+      points.push(new THREE.Vector3(path[i][0] * this.config_.width, path[i][1] * this.config_.height, 0));
+    }
+
+    const line = new MeshLine();
+    const normal : number[] = [];
+    if (this.config_.numSmoothPoints >= 0) {
+      const curve = new THREE.CatmullRomCurve3(points, false, 'catmullrom', 0.5);
+      const smoothPoints = curve.getPoints(this.config_.numSmoothPoints * path.length);
+      for (const i of smoothPoints) {
+        normal.push(i.x, i.y, 0);
+      }
+    } else {
+      for (const v of points) {
+        normal.push(v.x, v.y, 0);
+      }
+    }
+    line.setPoints(normal);
+    this.lines_.push(line);
+    const mesh = new THREE.Mesh(line, this.mat_);
+    this.threeLayer_.Add(mesh);
+    this.meshes_.push(mesh);
+  }
+
+  Clear() : void {
+    for (const el of this.meshes_) {
+      this.threeLayer_.RemoveMesh(el);
+    }
+    for (const el of this.lines_) {
+      el.dispose();
+    }
+    for (const el of this.basiclines_) {
+      this.threeLayer_.RemoveMesh(el);
+    }
+    this.lines_ = [];
+    this.basiclines_ = [];
+    this.meshes_ = [];
+  }
+
+  Render() : void {
+    this.threeLayer_.Render();
+  }
+
+  GetEl() : HTMLCanvasElement { return this.threeLayer_.GetDomElement(); }
+}
+
+
+/**
+ * @public
+ */
+ export class TongsLayerOrig implements ILayer {
+  private pathLayer_: PathLayer
+
+  constructor(config: ILandmarkLayerConfig) {
+    if (!config.color) {
+      config.color = 'red';
+    }
+    if (!config.lineWidth && typeof config.lineWidth !== 'number') {
+      config.lineWidth = 2;
+    }
+    this.pathLayer_ = new PathLayer({
+      width: config.width,
+      height: config.height,
+      lineWidth: config.lineWidth,
+      numSmoothPoints: 10,
+      color: config.color,
+    });
+  }
+
+  Draw(c: number[][]) : void {
+    this.Clear();
+    this.pathLayer_.DrawPath([c[20], c[0], c[1], c[2], c[3]]);
+    this.pathLayer_.DrawPath([c[20], c[4], c[5], c[6], c[7]]);
+  }
+
+  GetEl() : HTMLCanvasElement { return this.pathLayer_.GetEl(); }
+
+  Clear() : void {
+    this.pathLayer_.Clear();
+  }
+
+  Render() : void {
+    this.pathLayer_.Render();
+  }
+
+  Stop() : void {}
+}
+
+/**
+ * @public
+ */
 export class LandmarkLayer implements ILayer {
   private pathLayer_: PathLayer
 

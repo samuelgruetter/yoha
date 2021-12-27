@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>YoHa Engine Draw Demo</title>
+    <title>Crab Hand</title>
     <meta name="YoHa Engine Draw Demo" content="YoHa Engine Draw Demo">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +14,7 @@
     <style>
       body {
         font-family: 'Roboto', sans-serif;
-        background-color: #494949;
+        background-color: black;
         color: white;
       }
       #container {
@@ -27,7 +27,6 @@
         display: inline-block;
         width: 85%;
         min-height: 500px;
-        border: 1px solid white;
         padding: 1rem;
       }
       #logs-container {
@@ -51,6 +50,7 @@
 
     <div id="container">
       <div id="inner-container">
+        <!--
         <h1 >YoHa Engine Draw Demo</h1>
         <div id="hint-container">
           <div id="hint">
@@ -67,11 +67,12 @@
           </div>
         </div>
         <hr>
+        -->
         <div id="canvas-container">
           <div id="canvas">
           </div>
         </div>
-        <div id="logs-container">
+        <div id="logs-container" style="display: none;">
           <div id="logs">
             <div id="mobile" style="display: none; color: red;">You appear to be using a mobile device. For best results use a laptop/desktop pc.</div>
             <div>Downloading model: <span id="progress">0%</span></div>

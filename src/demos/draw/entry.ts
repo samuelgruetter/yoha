@@ -1,4 +1,4 @@
-import {VideoLayer, PointLayer, DynamicPathLayer, LayerStack, LandmarkLayer, FpsLayer} from '../../util/layers'
+import {VideoLayer, PointLayer, DynamicPathLayer, LayerStack, LandmarkLayer, TongsLayer, FpsLayer} from '../../util/layers'
 import {CreateEngine, MediaStreamErrorEnum, EventEnum} from '../../util/engine_helper'
 import {IsMobile} from '../../util/mobile_detect'
 import {ScaleResolutionToWidth} from '../../util/stream_helper'
@@ -60,7 +60,7 @@ async function CreateDrawDemo() {
   ({width, height} = ScaleResolutionToWidth({width, height}, targetWidth));
 
   // Create helper "layers" that we can use for easy visualization of the results.
-  const {stack, videoLayer, pointLayer, pathLayer, landmarkLayer, fpsLayer} =
+  const {stack, videoLayer, pointLayer, pathLayer, landmarkLayer, tongsLayer, fpsLayer} =
       CreateLayerStack(src.video, width, height);
   document.getElementById('canvas').appendChild(stack.GetEl());
 
@@ -88,16 +88,20 @@ async function CreateDrawDemo() {
       }
 
       // Uncomment to hide video upon detection.
-      // videoLayer.FadeOut();
+      videoLayer.FadeOut();
       landmarkLayer.Draw(e.coordinates);
       landmarkLayer.Render();
+      tongsLayer.Draw(e.coordinates);
+      tongsLayer.Render();
       fpsLayer.RegisterCall();
     } else if (e.type === EventEnum.LOST) {
       pathLayer.EndPath();
       landmarkLayer.Clear();
       landmarkLayer.Render();
+      tongsLayer.Clear();
+      tongsLayer.Render();
       // Uncomment to show video upon loosing the hand.
-      // videoLayer.FadeIn();
+      videoLayer.FadeIn();
     }
   });
  
@@ -150,7 +154,7 @@ function CreateLayerStack(video: HTMLVideoElement, width: number, height: number
     radius: 8,
     fill: true,
   });
-  stack.AddLayer(pointLayer);
+  //stack.AddLayer(pointLayer);
 
   const pathLayer = new DynamicPathLayer({
     pathLayerConfig: {
@@ -161,21 +165,31 @@ function CreateLayerStack(video: HTMLVideoElement, width: number, height: number
       lineWidth: 20,
     }
   });
-  stack.AddLayer(pathLayer);
+  //stack.AddLayer(pathLayer);
 
   const landmarkLayer = new LandmarkLayer({
     width,
     height,
+    lineWidth: 2,
+    color: 'yellow'
   });
-  stack.AddLayer(landmarkLayer);
+  //stack.AddLayer(landmarkLayer);
+
+  const tongsLayer = new TongsLayer({
+    width,
+    height,
+    lineWidth: 30,
+    color: 'red'
+  });
+  stack.AddLayer(tongsLayer);
 
   const fpsLayer = new FpsLayer({
     width,
     height,
   });
-  stack.AddLayer(fpsLayer);
+  //stack.AddLayer(fpsLayer);
 
-  return {stack, videoLayer, pointLayer, pathLayer, landmarkLayer, fpsLayer};
+  return {stack, videoLayer, pointLayer, pathLayer, landmarkLayer, tongsLayer, fpsLayer};
 }
 
 // Don't execute inside web workers. This check is for internal infrastructure only, you can ignore this.
